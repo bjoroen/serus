@@ -71,13 +71,21 @@ impl VM {
                 self.registers[load_register] = register_one / register_two;
                 self.remainder = (register_one % register_two) as u32;
             }
-            Opcode::HLT => {
-                println!("HLT encountered");
-                false;
-            }
             Opcode::JMP => {
                 let target = self.registers[self.next_8_bites_usize()];
                 self.pc = target as usize;
+            }
+            Opcode::JMPB => {
+                let target = self.registers[self.next_8_bites_usize()];
+                self.pc -= target as usize
+            }
+            Opcode::JMPF => {
+                let target = self.registers[self.next_8_bites_usize()];
+                self.pc += target as usize
+            }
+            Opcode::HLT => {
+                println!("HLT encountered");
+                false;
             }
             Opcode::IGL => {
                 println!("IGL encountered");
@@ -202,9 +210,28 @@ mod tests {
         assert_eq!(test_vm.registers[0], 3)
     }
 
-    // Impl Test for JMP
     #[test]
     fn test_opcode_jmp() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 1;
+        test_vm.program = vec![6, 0, 0, 0];
+        test_vm.run_once();
+
+        assert_eq!(test_vm.pc, 1);
+    }
+
+    #[test]
+    fn test_opcode_jmp_back() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 1;
+        test_vm.program = vec![6, 0, 0, 0];
+        test_vm.run_once();
+
+        assert_eq!(test_vm.pc, 1);
+    }
+
+    #[test]
+    fn test_opcode_jmp_forward() {
         let mut test_vm = VM::new();
         test_vm.registers[0] = 1;
         test_vm.program = vec![6, 0, 0, 0];
