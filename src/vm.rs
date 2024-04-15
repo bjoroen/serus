@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-use std::usize;
 
 use crate::instruction::Opcode;
 
@@ -7,6 +6,7 @@ pub struct VM {
     registers: [i32; 32],
     pc: usize,
     program: Vec<u8>,
+    remainder: u32,
 }
 
 impl VM {
@@ -15,6 +15,7 @@ impl VM {
             registers: [0; 32],
             pc: 0,
             program: vec![],
+            remainder: 0,
         }
     }
 
@@ -42,17 +43,35 @@ impl VM {
                 self.registers[register] = number as i32;
             }
             Opcode::ADD => {
-                let register_one = self.next_8_bits() as i32;
-                dbg!(&register_one);
-                let register_two = self.next_8_bits() as i32;
-                dbg!(&register_two);
+                let register_one = self.registers[self.next_8_bits() as usize];
+                let register_two = self.registers[self.next_8_bits() as usize];
 
                 self.registers[self.next_8_bits() as usize] = register_one + register_two;
+            }
+            Opcode::MUL => {
+                let register_one = self.registers[self.next_8_bits() as usize];
+                let register_two = self.registers[self.next_8_bits() as usize];
+
+                self.registers[self.next_8_bits() as usize] = register_one * register_two;
+            }
+            Opcode::SUB => {
+                let register_one = self.registers[self.next_8_bits() as usize];
+                let register_two = self.registers[self.next_8_bits() as usize];
+
+                self.registers[self.next_8_bits() as usize] = register_one - register_two;
+            }
+            Opcode::DIV => {
+                let register_one = self.registers[self.next_8_bits() as usize];
+                let register_two = self.registers[self.next_8_bits() as usize];
+
+                self.registers[self.next_8_bits() as usize] = register_one / register_two;
+                self.remainder = (register_one % register_two) as u32;
             }
             Opcode::HLT => {
                 println!("HLT encountered");
                 false;
             }
+            Opcode::JMP => todo!(),
             Opcode::IGL => {
                 println!("IGL encountered");
                 false;
@@ -117,7 +136,7 @@ mod tests {
     #[test]
     fn test_opcode_load() {
         let mut test_vm = VM::new();
-        test_vm.program = vec![0, 0, 1, 244];
+        test_vm.program = vec![0, 0, 1, 0xF4];
 
         test_vm.run();
         assert_eq!(test_vm.registers[0], 500)
@@ -126,10 +145,51 @@ mod tests {
     #[test]
     fn test_opcode_add() {
         let mut test_vm = VM::new();
+        test_vm.registers[0] = 500;
+        test_vm.registers[1] = 500;
         test_vm.program = vec![1, 0, 1, 2];
 
         test_vm.run();
-        dbg!(&test_vm.registers);
-        assert_eq!(test_vm.registers[2], 15)
+        assert_eq!(test_vm.registers[2], 1000)
+    }
+
+    #[test]
+    fn test_opcode_div() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 8;
+        test_vm.registers[1] = 5;
+        test_vm.program = vec![2, 0, 1, 2];
+
+        test_vm.run_once();
+        assert_eq!(test_vm.registers[2], 1);
+        assert_eq!(test_vm.remainder, 3);
+    }
+
+    #[test]
+    fn test_opcode_mul() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 2;
+        test_vm.registers[1] = 5;
+        test_vm.program = vec![3, 0, 1, 2];
+
+        test_vm.run_once();
+        assert_eq!(test_vm.registers[2], 10)
+    }
+
+    #[test]
+    fn test_opcode_sub() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 5;
+        test_vm.registers[1] = 2;
+        test_vm.program = vec![4, 0, 1, 2];
+
+        test_vm.run_once();
+        assert_eq!(test_vm.registers[2], 3)
+    }
+
+    // Impl Test for JMP
+    #[test]
+    fn test_opcode_jmp() {
+        todo!()
     }
 }
