@@ -143,7 +143,22 @@ impl VM {
                     false => self.registers[target] = 0,
                 }
             }
-            Opcode::JEQ => todo!(),
+            Opcode::JEQ => {
+                let target = self.next_8_bites_usize();
+                let bool_register = self.next_8_bites_usize();
+
+                if self.registers[bool_register] == 1 {
+                    self.pc = self.registers[target] as usize;
+                }
+            }
+            Opcode::JNEQ => {
+                let target = self.next_8_bites_usize();
+                let bool_register = self.next_8_bites_usize();
+
+                if self.registers[bool_register] == 0 {
+                    self.pc = self.registers[target] as usize;
+                }
+            }
             Opcode::HLT => {
                 println!("HLT encountered");
                 false;
@@ -465,5 +480,29 @@ mod tests {
         test_vm.run_once();
 
         assert_eq!(test_vm.registers[0], 0);
+    }
+
+    #[test]
+    fn test_opcode_jeq() {
+        let mut test_vm = VM::new();
+
+        test_vm.registers[0] = 2;
+        test_vm.registers[1] = 1;
+        test_vm.program = vec![15, 0, 1, 0];
+        test_vm.run_once();
+
+        assert_eq!(test_vm.pc, 2);
+    }
+
+    #[test]
+    fn test_opcode_jneq() {
+        let mut test_vm = VM::new();
+
+        test_vm.registers[0] = 2;
+        test_vm.registers[1] = 0;
+        test_vm.program = vec![16, 0, 1, 0];
+        test_vm.run_once();
+
+        assert_eq!(test_vm.pc, 2);
     }
 }
