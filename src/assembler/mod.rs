@@ -7,7 +7,7 @@ mod lexer;
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Op { code: Opcode, line: usize },
-    Register { register: usize, line: usize },
+    Register { register: String, line: usize },
     IntOperand { operand: usize, line: usize },
 }
 

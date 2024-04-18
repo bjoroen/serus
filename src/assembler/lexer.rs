@@ -66,8 +66,21 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn parse_register(&self) {
-        todo!()
+    fn parse_register(&mut self) {
+        let mut s = vec![];
+        let line = self.current_line;
+
+        while let Some(c) = self.next() {
+            if c.is_alphanumeric() {
+                s.push(c)
+            } else {
+                break;
+            }
+        }
+
+        let register = String::from_iter(s);
+
+        self.tokens.push(Token::Register { register, line })
     }
 
     fn parse_operand(&self) {
@@ -93,10 +106,14 @@ mod tests {
 
     #[test]
     fn test_lex_opcode() {
-        let mut lexer = Lexer::new("LOAD");
-        lexer.lex();
-
         let test_cases = [("LOAD\nADD]\nSUB", vec!["1:load", "2:add", "3:sub"])];
+
+        run_test(&test_cases)
+    }
+
+    #[test]
+    fn test_lex_register() {
+        let test_cases = [("$10\n$hello\n$world", vec!["10", "hello", "world"])];
 
         run_test(&test_cases)
     }
