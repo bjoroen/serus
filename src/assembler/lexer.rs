@@ -3,18 +3,7 @@ use std::str::{Chars, FromStr};
 
 use crate::instruction::Opcode;
 
-#[derive(Debug, PartialEq)]
-pub enum TokenType {
-    Op { code: Opcode },
-    Register { register: usize },
-    IntOperand { operand: usize },
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Token {
-    token_type: TokenType,
-    line: usize,
-}
+use super::Token;
 
 struct Lexer<'a> {
     source: Chars<'a>,
@@ -35,14 +24,13 @@ impl<'a> Lexer<'a> {
     }
 
     fn next(&mut self) -> Option<char> {
-        match self.source.next() {
-            Some(c) => {
-                if c == '\n' {
-                    self.current_line += 1
-                }
-                Some(c)
+        if let Some(c) = self.source.next() {
+            if c == '\n' {
+                self.current_line += 1
             }
-            None => None,
+            Some(c)
+        } else {
+            None
         }
     }
 
@@ -60,6 +48,7 @@ impl<'a> Lexer<'a> {
 
     fn parse_opcode(&mut self, c: char) {
         let mut s = String::from(c);
+        let line = self.current_line;
 
         while let Some(c) = self.next() {
             if c.is_alphabetic() {
@@ -70,10 +59,7 @@ impl<'a> Lexer<'a> {
         }
 
         if let Ok(opcode) = Opcode::from_str(&s.to_lowercase()) {
-            let token = Token {
-                token_type: TokenType::Op { code: opcode },
-                line: self.current_line,
-            };
+            let token = Token::Op { code: opcode, line };
             self.tokens.push(token)
         } else {
             eprintln!("Unknown Opcode: {} on line {}", s, self.current_line)
@@ -91,18 +77,27 @@ impl<'a> Lexer<'a> {
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
+    fn run_test(test_cases: &[(&str, Vec<&str>)]) {
+        for case in test_cases {
+            let mut lexer = Lexer::new(case.0);
+            lexer.lex();
+
+            for (i, token) in lexer.tokens.into_iter().enumerate() {
+                assert_eq!(token.to_string(), case.1[i])
+            }
+        }
+    }
+
     #[test]
-    fn test_parse_opcode() {
+    fn test_lex_opcode() {
         let mut lexer = Lexer::new("LOAD");
         lexer.lex();
-        assert_eq!(
-            lexer.tokens[0],
-            Token {
-                token_type: TokenType::Op { code: Opcode::LOAD },
-                line: 1
-            }
-        )
+
+        let test_cases = [("LOAD\nADD]\nSUB", vec!["1:load", "2:add", "3:sub"])];
+
+        run_test(&test_cases)
     }
 }
