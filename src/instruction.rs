@@ -1,4 +1,7 @@
 #![allow(dead_code)]
+
+use std::str::FromStr;
+
 #[derive(Debug, PartialEq)]
 pub enum Opcode {
     LOAD,
@@ -53,6 +56,17 @@ impl From<u8> for Opcode {
             15 => Opcode::JEQ,
             16 => Opcode::JNEQ,
             _ => Opcode::IGL,
+        }
+    }
+}
+
+impl FromStr for Opcode {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "load" => Ok(Opcode::LOAD),
+            _ => Err(()),
         }
     }
 }
