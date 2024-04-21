@@ -2,7 +2,7 @@
 
 use std::{fmt::Display, str::FromStr};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Opcode {
     LOAD,
     ADD,
@@ -56,6 +56,31 @@ impl From<u8> for Opcode {
             15 => Opcode::JEQ,
             16 => Opcode::JNEQ,
             _ => Opcode::IGL,
+        }
+    }
+}
+
+impl From<Opcode> for u8 {
+    fn from(op: Opcode) -> u8 {
+        match op {
+            Opcode::LOAD => 0,
+            Opcode::ADD => 1,
+            Opcode::DIV => 2,
+            Opcode::MUL => 3,
+            Opcode::SUB => 4,
+            Opcode::HLT => 5,
+            Opcode::JMP => 6,
+            Opcode::JMPB => 7,
+            Opcode::JMPF => 8,
+            Opcode::EQ => 9,
+            Opcode::NEQ => 10,
+            Opcode::GT => 11,
+            Opcode::LT => 12,
+            Opcode::GTQ => 13,
+            Opcode::LTQ => 14,
+            Opcode::JEQ => 15,
+            Opcode::JNEQ => 16,
+            Opcode::IGL => 100,
         }
     }
 }

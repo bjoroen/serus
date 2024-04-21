@@ -1,106 +1,119 @@
 #![allow(dead_code)]
-use std::str::{Chars, FromStr};
+use std::str::FromStr;
 
 use crate::instruction::Opcode;
 
 use super::Token;
 
-struct Lexer<'a> {
-    source: Chars<'a>,
-    pos: usize,
-    pub tokens: Vec<Token>,
-    current_line: usize,
+#[derive(Debug, PartialEq, Clone)]
+pub struct Lexer {
+    source: Vec<char>,
+    current: usize,
+    next: usize,
+    char: char,
 }
 
-impl<'a> Lexer<'a> {
-    pub fn new(source: &'a str) -> Lexer {
-        let source = source.chars();
-        Lexer {
+impl Lexer {
+    pub fn new(source: &str) -> Lexer {
+        let source = source.chars().collect();
+        let mut l = Lexer {
             source,
-            pos: 0,
-            tokens: vec![],
-            current_line: 1,
-        }
+            current: 0,
+            next: 1,
+            char: '\0',
+        };
+
+        l.char = l.source[l.current];
+        l
     }
 
-    fn next(&mut self) -> Option<char> {
-        if let Some(c) = self.source.next() {
-            if c == '\n' {
-                self.current_line += 1
-            }
-            Some(c)
+    fn read(&mut self) {
+        if self.next >= self.source.len() {
+            self.char = '\0';
         } else {
-            None
+            self.char = self.source[self.next];
+        }
+
+        self.current = self.next;
+        self.next = self.current + 1;
+    }
+
+    pub fn lex(&mut self) -> Token {
+        while self.char.is_whitespace() {
+            self.read()
+        }
+
+        match self.char {
+            '#' => self.parse_int_operand(),
+            '$' => self.parse_register(),
+            c if c.is_alphabetic() => self.parse_opcode(),
+            _ => unimplemented!(),
         }
     }
 
-    pub fn lex(&mut self) {
-        while let Some(c) = self.next() {
-            match c {
-                '#' => self.parse_int_operand(),
-                '$' => self.parse_register(),
-                _ if c.is_alphabetic() => self.parse_opcode(c),
-                _ if c.is_whitespace() => {}
-                _ => unimplemented!(),
-            }
-        }
-    }
+    fn parse_opcode(&mut self) -> Token {
+        let mut s = String::new();
 
-    fn parse_opcode(&mut self, c: char) {
-        let mut s = String::from(c);
-
-        while let Some(c) = self.next() {
-            if c.is_alphabetic() {
-                s.push(c)
-            } else {
-                assert!(c.is_whitespace());
-                break;
-            }
+        while self.char.is_alphabetic() {
+            s.push(self.char);
+            self.read();
         }
 
         if let Ok(opcode) = Opcode::from_str(&s.to_lowercase()) {
-            let token = Token::Op {
-                code: opcode,
-                line: self.current_line,
-            };
-            self.tokens.push(token)
+            let token = Token::Op { code: opcode };
+
+            token
         } else {
-            panic!("Unknown Opcode: {} on line {}", s, self.current_line)
+            panic!("Unknown Opcode: {}", s)
         }
     }
 
-    fn parse_register(&mut self) {
-        let mut s = vec![];
-
-        while let Some(c) = self.next() {
-            if c.is_alphanumeric() {
-                s.push(c)
-            } else {
-                assert!(c.is_whitespace());
-                break;
-            }
-        }
-
-        let register = String::from_iter(s);
-
-        self.tokens.push(Token::Register { register })
-    }
-
-    fn parse_int_operand(&mut self) {
+    fn parse_register(&mut self) -> Token {
         let mut s = String::new();
+        self.read();
 
-        while let Some(c) = self.next() {
-            dbg!(&c);
-            if c.is_numeric() {
-                s.push(c)
-            } else {
-                break;
-            }
+        while self.char.is_numeric() {
+            s.push(self.char);
+            self.read()
         }
 
-        self.tokens.push(Token::IntOperand {
-            operand: s.parse().unwrap(),
-        })
+        if let Ok(register) = s.parse() {
+            Token::Register { register }
+        } else {
+            panic!("Could not parse number for register: {}", s)
+        }
+    }
+
+    fn parse_int_operand(&mut self) -> Token {
+        let mut s = String::new();
+        self.read();
+
+        while self.char.is_numeric() {
+            s.push(self.char);
+            self.read()
+        }
+
+        if let Ok(int_operand) = s.parse() {
+            Token::IntOperand {
+                operand: int_operand,
+            }
+        } else {
+            panic!("Could not parse number for register: {}", s)
+        }
+    }
+}
+
+impl Iterator for Lexer {
+    type Item = Token;
+
+    fn next(&mut self) -> Option<Token> {
+        if self.current >= self.source.len() {
+            return None;
+        }
+
+        let token = self.lex();
+
+        Some(token)
     }
 }
 
@@ -112,9 +125,13 @@ mod tests {
     fn run_test(test_cases: &[(&str, &str)]) {
         for (input, expected) in test_cases {
             let mut lexer = Lexer::new(input);
-            lexer.lex();
+            let mut tokens = vec![];
 
-            let token_string = String::from_iter(lexer.tokens.iter().map(|t| t.to_string()));
+            while let Some(t) = lexer.next() {
+                tokens.push(t)
+            }
+
+            let token_string = String::from_iter(tokens.iter().map(|t| t.to_string()));
 
             assert_eq!(token_string, *expected)
         }
@@ -122,18 +139,14 @@ mod tests {
 
     #[test]
     fn test_lex_opcode() {
-        let test_cases = [
-            ("LOAD", "1:load "),
-            ("\nADD", "2:add "),
-            ("\n\nSUB", "3:sub "),
-        ];
+        let test_cases = [("LOAD", "load "), ("\nADD", "add "), ("\n\nSUB", "sub ")];
 
         run_test(&test_cases)
     }
 
     #[test]
     fn test_lex_register() {
-        let test_cases = [("$10", "10 "), ("$hello", "hello "), ("$world", "world ")];
+        let test_cases = [("$10", "10 "), ("$100", "100 "), ("$5", "5 ")];
 
         run_test(&test_cases)
     }
@@ -146,14 +159,11 @@ mod tests {
     }
 
     #[test]
-    fn test_lex_full_line() {
+    fn test_lex_instruction() {
         let test_cases = [
-            ("load $hello #10", "1:load hello 10 "),
-            ("add $result $hello #1", "1:add result hello 1 "),
-            (
-                "sub $result #1 #2\n add $result #30 #20",
-                "1:sub result 1 2 2:add result 30 20 ",
-            ),
+            ("load $0 #10", "load 0 10 "),
+            ("add $0 $2 #1", "add 0 2 1 "),
+            ("sub $0 #1 #2\n add $2 #30 #20", "sub 0 1 2 add 2 30 20 "),
         ];
 
         run_test(&test_cases)
