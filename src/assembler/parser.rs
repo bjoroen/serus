@@ -5,7 +5,7 @@ use super::{assembler_instruction::AssemblerInstruction, lexer::Lexer, Token};
 pub struct Parser {
     lexer: Lexer,
     current: Token,
-    program: Vec<AssemblerInstruction>,
+    pub program: Vec<AssemblerInstruction>,
 }
 
 impl Parser {
@@ -16,10 +16,6 @@ impl Parser {
             current: Token::EOF,
             program: vec![],
         }
-    }
-
-    fn get_instructions(&self) -> Vec<AssemblerInstruction> {
-        self.program.clone()
     }
 
     pub fn parse(&mut self) {
@@ -93,12 +89,11 @@ mod tests {
     fn test_parse_instruction() {
         let mut p = Parser::new("load $10 #10\nHLT\nADD $0 $10 $5");
         p.parse();
-        let instructions = p.get_instructions();
 
-        assert_eq!(instructions.len(), 3);
+        assert_eq!(p.program.len(), 3);
 
         assert_eq!(
-            instructions[0],
+            p.program[0],
             AssemblerInstruction {
                 opcode: Token::Op {
                     code: crate::instruction::Opcode::LOAD
@@ -110,7 +105,7 @@ mod tests {
         );
 
         assert_eq!(
-            instructions[1],
+            p.program[1],
             AssemblerInstruction {
                 opcode: Token::Op {
                     code: crate::instruction::Opcode::HLT
@@ -122,7 +117,7 @@ mod tests {
         );
 
         assert_eq!(
-            instructions[2],
+            p.program[2],
             AssemblerInstruction {
                 opcode: Token::Op {
                     code: crate::instruction::Opcode::ADD
