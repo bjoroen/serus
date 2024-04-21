@@ -1,6 +1,9 @@
-# Placeholder name VM
+# Serus VM
 
-Some description of the project, the what, why and so on
+Welcome to my register-based virtual machine project!
+This is a personal project aimed at deepening my understanding of virtual machines, programming language implementations, and Rust.
+
+Happy coding! 🚀
 
 ## Instructions
 
@@ -33,7 +36,7 @@ SUB RR IO IO # Subtracks number in first IO from number in second IO and stores 
 ## Lexing and Parsing
 
 I could have used a library to make the lexing and parsing process easier, but then I would also miss out
-on the fun that comes with hand rolling these things, and I really dont want a dependancies for this project.
+on the fun that comes with hand rolling these things, and I really dont want any dependancies for this project.
 
 I have written lexers and parsers in the past, and the grammar here is very simple, so Im going to wing it and see how it turns out.
 

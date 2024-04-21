@@ -1,14 +1,6 @@
 #![allow(dead_code)]
 
-use super::{lexer::Lexer, Token};
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-struct AssemblerInstruction {
-    opcode: Token,
-    operand_one: Option<Token>,
-    operand_two: Option<Token>,
-    operand_three: Option<Token>,
-}
+use super::{assembler_instruction::AssemblerInstruction, lexer::Lexer, Token};
 
 pub struct Parser {
     lexer: Lexer,
@@ -85,7 +77,6 @@ impl Parser {
     /// Reads and eats the next token
     pub fn read(&mut self) {
         self.current = if let Some(token) = self.lexer.next() {
-            dbg!(&token);
             token
         } else {
             Token::EOF
@@ -100,7 +91,7 @@ mod tests {
 
     #[test]
     fn test_parse_instruction() {
-        let mut p = Parser::new("load $10 #10\nHLT\nADD $0 #10 #10");
+        let mut p = Parser::new("load $10 #10\nHLT\nADD $0 $10 $5");
         p.parse();
         let instructions = p.get_instructions();
 
@@ -137,8 +128,8 @@ mod tests {
                     code: crate::instruction::Opcode::ADD
                 },
                 operand_one: Some(Token::Register { register: 0 }),
-                operand_two: Some(Token::IntOperand { operand: 10 }),
-                operand_three: Some(Token::IntOperand { operand: 10 }),
+                operand_two: Some(Token::Register { register: 10 }),
+                operand_three: Some(Token::Register { register: 5 }),
             }
         )
     }
