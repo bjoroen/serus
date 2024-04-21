@@ -5,6 +5,7 @@ use crate::instruction::Opcode;
 mod assembler_instruction;
 mod lexer;
 mod parser;
+mod program;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Token {
