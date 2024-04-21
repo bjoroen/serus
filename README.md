@@ -1,6 +1,6 @@
 # Serus VM
 
-Welcome to my register-based virtual machine project!
+Welcome to my register-based virtual machine project!  
 This is a personal project aimed at deepening my understanding of virtual machines, programming language implementations, and Rust.
 
 Happy coding! 🚀
