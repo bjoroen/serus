@@ -5,7 +5,7 @@ use crate::instruction::Opcode;
 mod assembler_instruction;
 mod lexer;
 mod parser;
-mod program;
+pub mod program;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Token {
@@ -21,7 +21,7 @@ impl Display for Token {
             Token::Op { code } => write!(f, "{} ", code),
             Token::Register { register } => write!(f, "{} ", register),
             Token::IntOperand { operand } => write!(f, "{} ", operand),
-            Token::EOF => write!(f, "EOF"),
+            Token::EOF => write!(f, ""),
         }
     }
 }

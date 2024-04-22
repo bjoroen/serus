@@ -3,6 +3,10 @@ use super::parser::Parser;
 pub struct Program;
 
 impl Program {
+    pub fn new() -> Program {
+        Program
+    }
+
     pub fn parse_program(source: &str) -> Vec<u8> {
         let mut program: Vec<u8> = vec![];
         let mut parser = Parser::new(source);
