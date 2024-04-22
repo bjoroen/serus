@@ -47,6 +47,7 @@ impl Lexer {
             '#' => self.parse_int_operand(),
             '$' => self.parse_register(),
             c if c.is_alphabetic() => self.parse_opcode(),
+            '\0' => Token::EOF,
             _ => unimplemented!(),
         }
     }
@@ -163,6 +164,7 @@ mod tests {
         let test_cases = [
             ("load $0 #10", "load 0 10 "),
             ("add $0 $2 #1", "add 0 2 1 "),
+            ("load $1 #10\n", "load 1 10 "),
             ("sub $0 #1 #2\n add $2 #30 #20", "sub 0 1 2 add 2 30 20 "),
         ];
 
