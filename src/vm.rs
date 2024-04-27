@@ -7,6 +7,7 @@ pub struct VM {
     pc: usize,
     pub program: Vec<u8>,
     remainder: u32,
+    heap: Vec<u8>,
 }
 
 impl VM {
@@ -16,6 +17,7 @@ impl VM {
             pc: 0,
             program: vec![],
             remainder: 0,
+            heap: vec![],
         }
     }
 
@@ -158,6 +160,12 @@ impl VM {
                 if self.registers[bool_register] == 0 {
                     self.pc = self.registers[target] as usize;
                 }
+            }
+            Opcode::ALOC => {
+                let register = self.next_8_bites_usize();
+                let bytes = self.registers[register];
+                let new_end = self.heap.len() as i32 + bytes;
+                self.heap.resize(new_end as usize, 0);
             }
             Opcode::HLT => {
                 println!("HLT encountered");
@@ -504,5 +512,16 @@ mod tests {
         test_vm.run_once();
 
         assert_eq!(test_vm.pc, 2);
+    }
+
+    #[test]
+    fn test_opcode_aloc() {
+        let mut test_vm = VM::new();
+
+        test_vm.registers[0] = 256;
+        test_vm.program = vec![17, 0, 0, 0];
+        test_vm.run_once();
+
+        assert_eq!(test_vm.heap.len(), 256);
     }
 }

@@ -1,11 +1,20 @@
-# Serus VM
+# Serus VMsasda
 
 Welcome to my register-based virtual machine project!  
 This is a personal project aimed at deepening my understanding of virtual machines, programming language implementations, and Rust.
 
 Happy coding! 🚀
 
-## Instructions
+---
+
+## TODOs
+
+- [x] Start REPL for better testing
+- [ ] Write short documentation about Lexer and Parser implementation
+
+## VM
+
+### Instructions
 
 Every Instruction is 4 bytes, where the first byte is the `Opcode`, the next 3 bytes are for the operands.
 For instructions that has a "result" the second byte is the register to store the result.
@@ -31,9 +40,13 @@ SUB RR IO IO # Subtracks number in first IO from number in second IO and stores 
 
 ```
 
+### Bytecode Format
+
+---
+
 ## Assembler
 
-## Lexing and Parsing
+### Lexing and Parsing
 
 I could have used a library to make the lexing and parsing process easier, but then I would also miss out
 on the fun that comes with hand rolling these things, and I really dont want any dependancies for this project.
