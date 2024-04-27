@@ -167,6 +167,14 @@ impl VM {
                 let new_end = self.heap.len() as i32 + bytes;
                 self.heap.resize(new_end as usize, 0);
             }
+            Opcode::INC => {
+                let register = self.next_8_bites_usize();
+                self.registers[register] = self.registers[register] + 1;
+            }
+            Opcode::DEC => {
+                let register = self.next_8_bites_usize();
+                self.registers[register] = self.registers[register] - 1;
+            }
             Opcode::HLT => {
                 println!("HLT encountered");
                 true;
@@ -523,5 +531,27 @@ mod tests {
         test_vm.run_once();
 
         assert_eq!(test_vm.heap.len(), 256);
+    }
+
+    #[test]
+    fn test_opcode_inc() {
+        let mut test_vm = VM::new();
+
+        test_vm.registers[0] = 1;
+        test_vm.program = vec![18, 0, 0, 0];
+        test_vm.run_once();
+
+        assert_eq!(test_vm.registers[0], 2);
+    }
+
+    #[test]
+    fn test_opcode_dec() {
+        let mut test_vm = VM::new();
+
+        test_vm.registers[0] = 2;
+        test_vm.program = vec![19, 0, 0, 0];
+        test_vm.run_once();
+
+        assert_eq!(test_vm.registers[0], 1);
     }
 }
