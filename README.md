@@ -1,4 +1,4 @@
-# Serus VMsasda
+# Serus VM
 
 Welcome to my register-based virtual machine project!  
 This is a personal project aimed at deepening my understanding of virtual machines, programming language implementations, and Rust.
@@ -10,7 +10,12 @@ Happy coding! 🚀
 ## TODOs
 
 - [x] Start REPL for better testing
-- [ ] Write short documentation about Lexer and Parser implementation
+- [ ] Lexer and Parser
+  - [ ] Error handling - Lexer and Parser should return Result<T,E>
+  - [ ] Error reporting - Lexer and Parser should keep track of line and colum for better error reporting
+  - [ ] Write short documentation about Lexer and Parser implementation
+- [ ] Assembler
+  - [ ] Define grammar for Directives and Labels
 
 ## VM
 
@@ -41,6 +46,12 @@ SUB RR IO IO # Subtracks number in first IO from number in second IO and stores 
 ```
 
 ### Bytecode Format
+
+- Byte 0-4: Magic number
+- Byte 5: Version number
+- Byte 6-63: Header section
+- Byte 64-71: Code Start section (This will point to at what byte the code section start)
+- Byte 72-199: Data section
 
 ---
 

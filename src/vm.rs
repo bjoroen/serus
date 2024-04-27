@@ -34,7 +34,7 @@ impl VM {
 
     pub fn execute_instruction(&mut self) -> bool {
         if self.pc >= self.program.len() {
-            return false;
+            return true;
         }
 
         match self.decode_opcode() {
@@ -169,15 +169,15 @@ impl VM {
             }
             Opcode::HLT => {
                 println!("HLT encountered");
-                false;
+                true;
             }
             Opcode::IGL => {
                 println!("IGL encountered");
-                false;
+                true;
             }
         }
 
-        true
+        false
     }
 
     fn decode_opcode(&mut self) -> Opcode {
@@ -226,7 +226,7 @@ mod tests {
         let test_bytes = vec![5, 0, 0, 0];
         test_vm.program = test_bytes;
 
-        test_vm.run();
+        test_vm.run_once();
         assert_eq!(test_vm.pc, 1);
     }
 
@@ -236,7 +236,7 @@ mod tests {
         let test_bytes = vec![254, 0, 0, 0];
         test_vm.program = test_bytes;
 
-        test_vm.run();
+        test_vm.run_once();
         assert_eq!(test_vm.pc, 1);
     }
 
