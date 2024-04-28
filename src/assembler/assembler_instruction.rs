@@ -2,7 +2,7 @@ use core::panic;
 
 use super::Token;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct AssemblerInstruction {
     pub opcode: Token,
     pub operand_one: Option<Token>,

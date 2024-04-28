@@ -46,7 +46,7 @@ impl Lexer {
         match self.char {
             '#' => self.parse_int_operand(),
             '$' => self.parse_register(),
-            c if c.is_alphabetic() => self.parse_opcode(),
+            _ if self.char.is_alphabetic() => self.parse_opcode(),
             '\0' => Token::EOF,
             _ => unimplemented!(),
         }

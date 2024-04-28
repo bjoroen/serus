@@ -9,8 +9,12 @@ Happy coding! 🚀
 
 ## TODOs
 
+- [ ] Integration Tests
+  - [ ] Write tests that take in and run an example file of instructions and asserts the state of the VM
 - [x] Start REPL for better testing
 - [ ] Lexer and Parser
+  - [ ] Lexer should handle Directives and Labels
+  - [ ] Parse should handle Directives and Labels
   - [ ] Error handling - Lexer and Parser should return Result<T,E>
   - [ ] Error reporting - Lexer and Parser should keep track of line and colum for better error reporting
   - [ ] Write short documentation about Lexer and Parser implementation
@@ -22,7 +26,7 @@ Happy coding! 🚀
 ### Instructions
 
 Every Instruction is 4 bytes, where the first byte is the `Opcode`, the next 3 bytes are for the operands.
-For instructions that has a "result" the second byte is the register to store the result.
+For instructions that have a "result" the second byte is the register to store the result.
 
 - RR = Result register
 - IO = integer operand
@@ -60,13 +64,13 @@ SUB RR IO IO # Subtracks number in first IO from number in second IO and stores 
 ### Lexing and Parsing
 
 I could have used a library to make the lexing and parsing process easier, but then I would also miss out
-on the fun that comes with hand rolling these things, and I really dont want any dependancies for this project.
+on the fun that comes with hand rolling these things, and I really don't want any dependencies for this project.
 
 I have written lexers and parsers in the past, and the grammar here is very simple, so Im going to wing it and see how it turns out.
 
-### Grammer
+### Grammar
 
-EBNF represntation of the grammer for the assembler
+EBNF representation of the grammar for the assembler
 
 ```EBNF
 
