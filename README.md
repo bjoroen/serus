@@ -13,10 +13,10 @@ Happy coding! 🚀
   - [ ] Write tests that take in and run an example file of instructions and asserts the state of the VM
 - [x] Start REPL for better testing
 - [ ] Lexer and Parser
-  - [ ] Lexer should handle Directives and Labels
-  - [ ] Parse should handle Directives and Labels
   - [ ] Error handling - Lexer and Parser should return Result<T,E>
   - [ ] Error reporting - Lexer and Parser should keep track of line and colum for better error reporting
+  - [ ] Lexer should handle Directives and Labels
+  - [ ] Parse should handle Directives and Labels
   - [ ] Write short documentation about Lexer and Parser implementation
 - [ ] Assembler
   - [ ] Define grammar for Directives and Labels

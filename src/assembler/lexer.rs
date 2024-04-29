@@ -44,10 +44,13 @@ impl Lexer {
         }
 
         match self.char {
-            '#' => self.parse_int_operand(),
-            '$' => self.parse_register(),
+            '#' => self.lex_int_operand(),
+            '$' => self.lex_register(),
+            '@' => self.lex_label(),
+            '.' => self.lex_directives(),
             _ if self.char.is_alphabetic() => self.parse_opcode(),
             '\0' => Token::EOF,
+            // TODO: Better error handling in lexer
             _ => unimplemented!(),
         }
     }
@@ -55,21 +58,28 @@ impl Lexer {
     fn parse_opcode(&mut self) -> Token {
         let mut s = String::new();
 
-        while self.char.is_alphabetic() {
+        while self.char.is_alphabetic() || self.char == '_' || self.char == '-' {
             s.push(self.char);
             self.read();
         }
 
-        if let Ok(opcode) = Opcode::from_str(&s.to_lowercase()) {
-            let token = Token::Op { code: opcode };
+        if self.char == ':' {
+            self.read();
+            let token = Token::LabelDefinition { value: s };
 
             token
         } else {
-            panic!("Unknown Opcode: {}", s)
+            if let Ok(opcode) = Opcode::from_str(&s.to_lowercase()) {
+                let token = Token::Op { code: opcode };
+
+                token
+            } else {
+                panic!("Unknown Opcode: {}", s)
+            }
         }
     }
 
-    fn parse_register(&mut self) -> Token {
+    fn lex_register(&mut self) -> Token {
         let mut s = String::new();
         self.read();
 
@@ -85,7 +95,7 @@ impl Lexer {
         }
     }
 
-    fn parse_int_operand(&mut self) -> Token {
+    fn lex_int_operand(&mut self) -> Token {
         let mut s = String::new();
         self.read();
 
@@ -101,6 +111,30 @@ impl Lexer {
         } else {
             panic!("Could not parse number for register: {}", s)
         }
+    }
+
+    fn lex_label(&mut self) -> Token {
+        self.read();
+        let mut s = String::new();
+
+        while self.char.is_alphabetic() || self.char == '_' || self.char == '-' {
+            s.push(self.char);
+            self.read()
+        }
+
+        Token::Label { name: s }
+    }
+
+    fn lex_directives(&mut self) -> Token {
+        self.read();
+        let mut s = String::new();
+
+        while self.char.is_alphabetic() {
+            s.push(self.char);
+            self.read()
+        }
+
+        Token::Directive { value: s }
     }
 }
 
@@ -123,7 +157,7 @@ mod tests {
 
     use super::*;
 
-    fn run_test(test_cases: &[(&str, &str)]) {
+    fn run_test(test_cases: &[(&str, Token)]) {
         for (input, expected) in test_cases {
             let mut lexer = Lexer::new(input);
             let mut tokens = vec![];
@@ -132,29 +166,119 @@ mod tests {
                 tokens.push(t)
             }
 
-            let token_string = String::from_iter(tokens.iter().map(|t| t.to_string()));
-
-            assert_eq!(token_string, *expected)
+            for token in tokens {
+                assert_eq!(token, *expected)
+            }
         }
     }
 
     #[test]
     fn test_lex_opcode() {
-        let test_cases = [("LOAD", "load "), ("\nADD", "add "), ("\n\nSUB", "sub ")];
+        let test_cases = [
+            ("LOAD", Token::Op { code: Opcode::LOAD }),
+            ("\nADD", Token::Op { code: Opcode::ADD }),
+            ("\n\nSUB", Token::Op { code: Opcode::SUB }),
+        ];
 
         run_test(&test_cases)
     }
 
     #[test]
     fn test_lex_register() {
-        let test_cases = [("$10", "10 "), ("$100", "100 "), ("$5", "5 ")];
+        let test_cases = [
+            ("$10", Token::Register { register: 10 }),
+            ("$100", Token::Register { register: 100 }),
+            ("$5", Token::Register { register: 5 }),
+        ];
 
         run_test(&test_cases)
     }
 
     #[test]
     fn test_lex_operand() {
-        let test_cases = [("#10", "10 "), ("#20", "20 "), ("#30", "30 ")];
+        let test_cases = [
+            ("#10", Token::IntOperand { operand: 10 }),
+            ("#20", Token::IntOperand { operand: 20 }),
+            ("#30", Token::IntOperand { operand: 30 }),
+        ];
+
+        run_test(&test_cases)
+    }
+
+    #[test]
+    fn test_lex_label_definition() {
+        let test_cases = [
+            (
+                "my_str:",
+                Token::LabelDefinition {
+                    value: String::from("my_str"),
+                },
+            ),
+            (
+                "str:",
+                Token::LabelDefinition {
+                    value: String::from("str"),
+                },
+            ),
+            (
+                "word:",
+                Token::LabelDefinition {
+                    value: String::from("word"),
+                },
+            ),
+        ];
+
+        run_test(&test_cases)
+    }
+
+    #[test]
+    fn test_lex_label() {
+        let test_cases = [
+            (
+                "@my_str",
+                Token::Label {
+                    name: String::from("my_str"),
+                },
+            ),
+            (
+                "@str",
+                Token::Label {
+                    name: String::from("str"),
+                },
+            ),
+            (
+                "@word",
+                Token::Label {
+                    name: String::from("word"),
+                },
+            ),
+        ];
+
+        run_test(&test_cases)
+    }
+
+    #[test]
+    fn test_lex_directives() {
+        let test_cases = [
+            (
+                ".asciiz",
+                Token::Directive {
+                    value: String::from("asciiz"),
+                },
+            ),
+            (
+                ".data",
+                Token::Directive {
+                    value: String::from("data"),
+                },
+            ),
+            (
+                ".word",
+                Token::Directive {
+                    value: String::from("word"),
+                },
+            ),
+        ];
 
         run_test(&test_cases)
     }
@@ -162,12 +286,56 @@ mod tests {
     #[test]
     fn test_lex_instruction() {
         let test_cases = [
-            ("load $0 #10", "load 0 10 "),
-            ("add $0 $2 #1", "add 0 2 1 "),
-            ("load $1 #10\n", "load 1 10 "),
-            ("sub $0 #1 #2\n add $2 #30 #20", "sub 0 1 2 add 2 30 20 "),
+            (
+                "sub $0 #1 #2\n add $2 #30 #20",
+                vec![
+                    Token::Op { code: Opcode::SUB },
+                    Token::Register { register: 0 },
+                    Token::IntOperand { operand: 1 },
+                    Token::IntOperand { operand: 2 },
+                    Token::Op { code: Opcode::ADD },
+                    Token::Register { register: 2 },
+                    Token::IntOperand { operand: 30 },
+                    Token::IntOperand { operand: 20 },
+                ],
+            ),
+            (
+                "load $0 #10",
+                vec![
+                    Token::Op { code: Opcode::LOAD },
+                    Token::Register { register: 0 },
+                    Token::IntOperand { operand: 10 },
+                ],
+            ),
+            (
+                "add $1 #20",
+                vec![
+                    Token::Op { code: Opcode::ADD },
+                    Token::Register { register: 1 },
+                    Token::IntOperand { operand: 20 },
+                ],
+            ),
+            (
+                "load $10 #20",
+                vec![
+                    Token::Op { code: Opcode::LOAD },
+                    Token::Register { register: 10 },
+                    Token::IntOperand { operand: 20 },
+                ],
+            ),
         ];
 
-        run_test(&test_cases)
+        for (input, expected) in test_cases {
+            let mut lexer = Lexer::new(input);
+            let mut tokens = vec![];
+
+            while let Some(t) = lexer.next() {
+                tokens.push(t)
+            }
+
+            for (i, token) in tokens.iter().enumerate() {
+                assert_eq!(token, &expected[i])
+            }
+        }
     }
 }

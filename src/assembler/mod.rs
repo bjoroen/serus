@@ -12,8 +12,9 @@ pub enum Token {
     Op { code: Opcode },
     Register { register: i32 },
     IntOperand { operand: i32 },
+    LabelDefinition { value: String },
     Label { name: String },
-    Directive { name: String },
+    Directive { value: String },
     EOF,
 }
 
@@ -23,8 +24,9 @@ impl Display for Token {
             Token::Op { code } => write!(f, "{} ", code),
             Token::Register { register } => write!(f, "{} ", register),
             Token::IntOperand { operand } => write!(f, "{} ", operand),
+            Token::LabelDefinition { value } => write!(f, "{} ", value),
             Token::Label { name } => write!(f, "{} ", name),
-            Token::Directive { name } => write!(f, ".{}", name),
+            Token::Directive { value } => write!(f, ".{}", value),
             Token::EOF => write!(f, ""),
         }
     }
@@ -36,9 +38,9 @@ impl From<Token> for u8 {
             Token::Op { code } => code as u8,
             Token::Register { register } => register as u8,
             Token::IntOperand { operand } => operand as u8,
-            Token::Label { name } => name as u8,
-            Token::Directive { name } => name as u8,
             Token::EOF => todo!("Handle Error"),
+            // TODO: Figure out how to handle from and to u8 for Labels and Directive
+            _ => todo!(),
         }
     }
 }

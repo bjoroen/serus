@@ -14,8 +14,8 @@ impl AssemblerInstruction {
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut result = vec![];
 
-        match self.opcode {
-            Token::Op { code } => result.push(code as u8),
+        match &self.opcode {
+            Token::Op { code } => result.push(*code as u8),
             e => {
                 panic!("Expected opcode, found {e}")
             }

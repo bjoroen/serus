@@ -29,13 +29,13 @@ impl Parser {
     fn parse_instruction(&mut self) -> Option<AssemblerInstruction> {
         match self.current {
             Token::Op { code: _ } => {
-                let op = self.current;
+                let op = self.current.clone();
 
                 // Eat the OP token
                 self.read();
 
                 Some(AssemblerInstruction {
-                    opcode: op,
+                    opcode: op.clone(),
                     operand_one: self.next_operand(),
                     operand_two: self.next_operand(),
                     operand_three: self.next_operand(),
@@ -49,12 +49,12 @@ impl Parser {
     fn next_operand(&mut self) -> Option<Token> {
         match self.current {
             Token::Register { register: _ } => {
-                let current = self.current;
+                let current = self.current.clone();
                 self.read();
                 return Some(current);
             }
             Token::IntOperand { operand: _ } => {
-                let current = self.current;
+                let current = self.current.clone();
                 self.read();
                 return Some(current);
             }
