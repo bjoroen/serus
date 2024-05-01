@@ -16,8 +16,8 @@ Happy coding! 🚀
 - Lexer and Parser
 - [ ] Error handling - Lexer and Parser should return Result<T,E>
 - [ ] Error reporting - Lexer and Parser should keep track of line and colum for better error reporting
-- [ ] Parse should handle Directives and Labels
 - [ ] Write short documentation about Lexer and Parser implementation
+- [x] Parse should handle Directives and Labels
 - [x] Lexer should handle Directives and Labels
 
 - Assembler
