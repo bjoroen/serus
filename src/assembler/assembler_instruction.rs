@@ -3,8 +3,26 @@ use core::panic;
 use super::Token;
 
 #[derive(Debug, PartialEq, Clone)]
+pub enum AssemblerToken {
+    LabelDeclaration {
+        label_name: String,
+        assembler_instruction: AssemblerInstruction,
+    },
+    Instruction {
+        assembler_instruction: AssemblerInstruction,
+    },
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct LabelDeclaration {
+    pub assembler_instruction: AssemblerInstruction,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub struct AssemblerInstruction {
-    pub opcode: Token,
+    pub opcode: Option<Token>,
+    pub directive: Option<Token>,
+    pub label: Option<Token>,
     pub operand_one: Option<Token>,
     pub operand_two: Option<Token>,
     pub operand_three: Option<Token>,
@@ -15,15 +33,15 @@ impl AssemblerInstruction {
         let mut result = vec![];
 
         match &self.opcode {
-            Token::Op { code } => result.push(*code as u8),
-            e => {
-                panic!("Expected opcode, found {e}")
+            Some(Token::Op { code }) => result.push(*code as u8),
+            _ => {
+                panic!("Expected opcode or Directive")
             }
         }
 
         for operand in vec![&self.operand_one, &self.operand_two, &self.operand_three] {
             match operand {
-                Some(t) => AssemblerInstruction::get_operand(t, &mut result),
+                Some(t) => self.get_operand(t, &mut result),
                 None => {}
             }
         }
@@ -35,7 +53,7 @@ impl AssemblerInstruction {
         result
     }
 
-    fn get_operand(t: &Token, result: &mut Vec<u8>) {
+    fn get_operand(&self, t: &Token, result: &mut Vec<u8>) {
         match t {
             Token::Register { register } => result.push(*register as u8),
             Token::IntOperand { operand } => {
@@ -60,12 +78,14 @@ mod tests {
     #[test]
     fn test_assemblerinstruction_tobytes() {
         let ai = AssemblerInstruction {
-            opcode: Token::Op {
+            opcode: Some(Token::Op {
                 code: crate::instruction::Opcode::LOAD,
-            },
+            }),
             operand_one: Some(Token::Register { register: 10 }),
             operand_two: Some(Token::IntOperand { operand: 500 }),
             operand_three: None,
+            directive: None,
+            label: None,
         };
 
         assert_eq!(ai.to_bytes(), [0, 10, 1, 244])
@@ -74,12 +94,14 @@ mod tests {
     #[test]
     fn test_assemblerinstruction_add_tobytes() {
         let ai = AssemblerInstruction {
-            opcode: Token::Op {
+            opcode: Some(Token::Op {
                 code: crate::instruction::Opcode::ADD,
-            },
+            }),
             operand_one: Some(Token::Register { register: 0 }),
             operand_two: Some(Token::Register { register: 10 }),
             operand_three: Some(Token::Register { register: 5 }),
+            directive: None,
+            label: None,
         };
 
         assert_eq!(ai.to_bytes(), [1, 0, 10, 5])

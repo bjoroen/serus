@@ -65,7 +65,7 @@ impl Lexer {
 
         if self.char == ':' {
             self.read();
-            let token = Token::LabelDefinition { value: s };
+            let token = Token::LabelDeclaration { value: s };
 
             token
         } else {
@@ -206,23 +206,23 @@ mod tests {
     }
 
     #[test]
-    fn test_lex_label_definition() {
+    fn test_lex_label_declaration() {
         let test_cases = [
             (
                 "my_str:",
-                Token::LabelDefinition {
+                Token::LabelDeclaration {
                     value: String::from("my_str"),
                 },
             ),
             (
                 "str:",
-                Token::LabelDefinition {
+                Token::LabelDeclaration {
                     value: String::from("str"),
                 },
             ),
             (
                 "word:",
-                Token::LabelDefinition {
+                Token::LabelDeclaration {
                     value: String::from("word"),
                 },
             ),

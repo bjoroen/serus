@@ -9,17 +9,19 @@ Happy coding! 🚀
 
 ## TODOs
 
-- [ ] Integration Tests
-  - [ ] Write tests that take in and run an example file of instructions and asserts the state of the VM
+- Integration Tests
+- [ ] Write tests that take in and run an example file of instructions and asserts the state of the VM
 - [x] Start REPL for better testing
-- [ ] Lexer and Parser
-  - [ ] Error handling - Lexer and Parser should return Result<T,E>
-  - [ ] Error reporting - Lexer and Parser should keep track of line and colum for better error reporting
-  - [ ] Lexer should handle Directives and Labels
-  - [ ] Parse should handle Directives and Labels
-  - [ ] Write short documentation about Lexer and Parser implementation
-- [ ] Assembler
-  - [ ] Define grammar for Directives and Labels
+
+- Lexer and Parser
+- [ ] Error handling - Lexer and Parser should return Result<T,E>
+- [ ] Error reporting - Lexer and Parser should keep track of line and colum for better error reporting
+- [ ] Parse should handle Directives and Labels
+- [ ] Write short documentation about Lexer and Parser implementation
+- [x] Lexer should handle Directives and Labels
+
+- Assembler
+- [x] Define grammar for Directives and Labels
 
 ## VM
 
@@ -74,26 +76,40 @@ EBNF representation of the grammar for the assembler
 
 ```EBNF
 
-<program> ::= <instruction> | <instruction> <newline> <program>
-<instruction> ::= <opcode> <register> <integer_operand> <newline>
-<opcode> ::= <letter_sequence> " "
-<register> ::= "$" <number> " "
-<integer_operand> ::= "#" <number>
-<number> ::= [0-9]
-<letter_sequence> ::= <letter> | <letter> <letter_sequence>
-<letter> ::= [a-Z]
-<newline> ::= "\n"
+Program             ::= { LabelDeclaration | Instruction | Directive } .
+LabelDeclaration    ::= identifier ":" .
+Instruction         ::= opcode [LabelRef] | [operand] .
+Directive           ::= "." identifier [operand] .
 
-- <program> represents the entire program, which consists of one or more instructions.
-- <instruction> represents a single instruction, which consists of an opcode, a register, an integer operand, and a newline character.
-- <opcode>, <register>, and <integer_operand> represent the respective components of an instruction.
-- <number> represents a single digit.
-- <letter_sequence> represents one or more letters in a row.
-- <letter> represents any uppercase or lowercase letter.
-- <newline> represents a newline character, which is represented by the escape sequence "\n".
+LabelRef            ::= "@" identifier ":" .
+identifier          ::= letter { letter | digit } .
+letter              ::= "a" | "b" | ... | "z" | "A" | "B" | ... | "Z" .
+digit               ::= "0" | "1" | ... | "9" .
+opcode              ::= "LOAD" | "ADD" | "DIV" | "MUL" | "SUB" | "HLT"
+                        | "JMP" | "JMPB" | "JMPF" | "EQ" | "NEQ" | "GT"
+                        | "LT" | "GTQ" | "LTQ" | "JEQ" | "JNEQ" | "ALOC"
+                        | "INC" | "DEC" | "IGL" .
+operand             ::= register | number | string .
+
+register            ::= "$" (identifier | number) .
+number              ::= "#" digit { digit } .
+string              ::= "\"" {character} "\"" .
+
+character           ::= letter | digit | special_character .
+special_character   ::= " " | "!" | "#" | ... | "~" .
+
 
 ```
 
+```MIPS
+test1: LOAD $0 #100 // LabelDeclaration, Opcode, register, number
+DJMP @test1 // Opcode, LabelRef
 ```
+
+```MIPS
+my_string: .asciiz "Hello world" // LabelDeclaration, Directive, string
+```
+
+```MIPS
 LOAD $1 #10 // Loads the number 10 into register 1
 ```

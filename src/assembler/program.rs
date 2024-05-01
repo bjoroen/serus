@@ -14,7 +14,12 @@ impl Program {
         let instructions = parser.program;
 
         for instruction in &instructions {
-            program.append(&mut instruction.to_bytes())
+            match instruction {
+                super::assembler_instruction::AssemblerToken::Instruction {
+                    assembler_instruction: instruct,
+                } => program.append(&mut instruct.to_bytes()),
+                _ => {}
+            }
         }
 
         program
