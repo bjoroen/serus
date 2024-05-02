@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use crate::instruction::Opcode;
 
+pub mod assembler;
 mod assembler_instruction;
 mod lexer;
 mod parser;

@@ -65,10 +65,9 @@ SUB RR IO IO # Subtracks number in first IO from number in second IO and stores 
 
 ### Lexing and Parsing
 
-I could have used a library to make the lexing and parsing process easier, but then I would also miss out
-on the fun that comes with hand rolling these things, and I really don't want any dependencies for this project.
-
-I have written lexers and parsers in the past, and the grammar here is very simple, so Im going to wing it and see how it turns out.
+- The lexer goes over all the source code and turns it into Tokens, lexer needs better error handling.
+- Parser groups Tokens into instructions. It also filter out LabelDeclarations to later be used to build
+  up a symboltable
 
 ### Grammar
 
@@ -111,5 +110,5 @@ my_string: .asciiz "Hello world" // LabelDeclaration, Directive, string
 ```
 
 ```MIPS
-LOAD $1 #10 // Loads the number 10 into register 1
+LOAD $1 #10 // Opcode, register, number
 ```
