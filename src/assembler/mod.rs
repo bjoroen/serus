@@ -24,12 +24,12 @@ pub enum Token {
 impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Token::Op { code } => write!(f, "{} ", code),
-            Token::Register { register } => write!(f, "{} ", register),
-            Token::IntOperand { operand } => write!(f, "{} ", operand),
+            Token::Op { code } => write!(f, "{}", code),
+            Token::Register { register } => write!(f, "{}", register),
+            Token::IntOperand { operand } => write!(f, "{}", operand),
             Token::StringOperand { operand } => write!(f, "{}", operand),
-            Token::LabelDeclaration { value } => write!(f, "{} ", value),
-            Token::Label { name } => write!(f, "{} ", name),
+            Token::LabelDeclaration { value } => write!(f, "{}", value),
+            Token::Label { name } => write!(f, "{}", name),
             Token::Directive { value } => write!(f, ".{}", value),
             Token::EOF => write!(f, ""),
         }

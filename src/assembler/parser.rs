@@ -214,13 +214,33 @@ mod tests {
 
     #[test]
     fn test_parse_instruction() {
-        let mut p = Parser::new("load $10 #10\nHLT\nADD $0 $10 $5");
+        let mut p =
+            Parser::new("my_string: .asciiz \"Hello world\"\nload $10 #10\nHLT\nADD $0 $10 $5");
         p.parse();
 
-        assert_eq!(p.program.len(), 3);
+        assert_eq!(p.program.len(), 4);
 
         assert_eq!(
             p.program[0],
+            AssemblerToken::LabelDeclaration {
+                label_name: String::from("my_string"),
+                assembler_instruction: AssemblerInstruction {
+                    opcode: None,
+                    directive: Some(Token::Directive {
+                        value: String::from("asciiz")
+                    }),
+                    label: None,
+                    operand_one: Some(Token::StringOperand {
+                        operand: String::from("Hello world")
+                    }),
+                    operand_two: None,
+                    operand_three: None
+                }
+            }
+        );
+
+        assert_eq!(
+            p.program[1],
             AssemblerToken::Instruction {
                 assembler_instruction: AssemblerInstruction {
                     opcode: Some(Token::Op {
@@ -236,7 +256,7 @@ mod tests {
         );
 
         assert_eq!(
-            p.program[1],
+            p.program[2],
             AssemblerToken::Instruction {
                 assembler_instruction: AssemblerInstruction {
                     opcode: Some(Token::Op {
@@ -252,7 +272,7 @@ mod tests {
         );
 
         assert_eq!(
-            p.program[2],
+            p.program[3],
             AssemblerToken::Instruction {
                 assembler_instruction: AssemblerInstruction {
                     opcode: Some(Token::Op {

@@ -1,7 +1,9 @@
-use crate::assembler::parser::Parser;
+use core::panic;
+
+use crate::{assembler::parser::Parser, instruction};
 
 use super::{
-    assembler_instruction::AssemblerToken,
+    assembler_instruction::{AssemblerInstruction, AssemblerToken},
     symbol::{Symbol, SymbolTable, SymbolType},
 };
 
@@ -15,6 +17,8 @@ pub enum AssemblerPhase {
 pub struct Assembler {
     pub phase: AssemblerPhase,
     pub symbols: SymbolTable,
+    pub sections: Vec<String>,
+    pub const_offset: u32,
 }
 
 impl Assembler {
@@ -22,6 +26,8 @@ impl Assembler {
         Assembler {
             phase: AssemblerPhase::PhaseOne,
             symbols: SymbolTable::new(),
+            sections: vec![],
+            const_offset: 0,
         }
     }
 
@@ -39,8 +45,8 @@ impl Assembler {
     }
 
     fn create_symbol_table(&mut self, program: &Vec<AssemblerToken>) {
-        for instruction in program {
-            match instruction {
+        for i in program {
+            match i {
                 AssemblerToken::LabelDeclaration {
                     label_name: name,
                     assembler_instruction: instruction,
@@ -50,17 +56,41 @@ impl Assembler {
                         instruction.to_bytes(),
                         SymbolType::Label,
                     );
-                    self.symbols.add_symbol(symbol)
+
+                    self.symbols.add_symbol(symbol);
+
+                    if instruction.is_directive() {
+                        self.process_directive(instruction)
+                    }
                 }
                 AssemblerToken::Instruction {
-                    assembler_instruction: _,
-                } => {}
+                    assembler_instruction: instruction,
+                } => {
+                    if instruction.is_directive() && !instruction.has_operands() {
+                        if let Some(directive) = &instruction.directive {
+                            self.sections.push(directive.to_string())
+                        }
+                    }
+                }
             }
         }
     }
 
     fn second_phase(&self, program: &[AssemblerToken]) -> Vec<u8> {
         vec![00, 21, 21]
+    }
+
+    fn process_directive(&self, instruction: &AssemblerInstruction) {
+        if let Some(name) = instruction.get_directive_name() {
+            match name {
+                ".asciiz" => self.handle_ascii(instruction),
+                _ => panic!("Unknown directive"),
+            }
+        }
+    }
+
+    fn handle_ascii(&self, i: &AssemblerInstruction) {
+        if let Some(s) = i.get_string_content() {}
     }
 }
 
@@ -79,6 +109,18 @@ mod tests {
         assert_eq!(
             assembler.symbols.get_symbol(String::from("my_label")),
             Some(&instruction)
+        );
+    }
+
+    #[test]
+    fn test_sections() {
+        let mut assembler = Assembler::new();
+
+        assembler.assemble(".data\n.code\nLOAD $1 #10");
+
+        assert_eq!(
+            assembler.sections,
+            vec![String::from(".data"), String::from(".code")]
         );
     }
 }

@@ -53,6 +53,40 @@ impl AssemblerInstruction {
         result
     }
 
+    pub fn is_directive(&self) -> bool {
+        self.directive.is_some()
+    }
+
+    pub fn has_operands(&self) -> bool {
+        for operand in vec![&self.operand_one, &self.operand_two, &self.operand_three] {
+            if operand.is_some() {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    pub fn get_directive_name(&self) -> Option<&str> {
+        match &self.directive {
+            Some(d) => match d {
+                Token::Directive { value: name } => Some(name.as_ref()),
+                _ => None,
+            },
+            None => None,
+        }
+    }
+
+    pub fn get_string_content(&self) -> Option<&str> {
+        if let Some(v) = &self.operand_one {
+            match &v {
+                Token::StringOperand { operand: s } => Some(s.as_str()),
+                _ => None,
+            }
+        } else {
+            None
+        }
+    }
+
     fn get_operand(&self, t: &Token, result: &mut Vec<u8>) {
         match t {
             Token::Register { register } => result.push(*register as u8),

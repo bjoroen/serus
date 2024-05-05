@@ -16,11 +16,16 @@ Happy coding! 🚀
 - Lexer and Parser
 - [ ] Error handling - Lexer and Parser should return Result<T,E>
 - [ ] Error reporting - Lexer and Parser should keep track of line and colum for better error reporting
+- [ ] Refactor out AssemblerToken - Creates too much complexity, has to be simpler way
 - [x] Write short documentation about Lexer and Parser implementation
 - [x] Parse should handle Directives and Labels
 - [x] Lexer should handle Directives and Labels
 
 - Assembler
+- [ ] Better define grammar and rules for assembly to make it easier to implement correct ruleset
+- [ ] Decalare const strings
+- [ ] Add ability to store values on the heap
+- [ ] Correct and update grammer for consts and sections
 - [x] Define grammar for Directives and Labels
 
 ## VM
