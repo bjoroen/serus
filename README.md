@@ -23,7 +23,7 @@ Happy coding! 🚀
 
 - Assembler
 - [ ] Better define grammar and rules for assembly to make it easier to implement correct ruleset
-- [ ] Decalare const strings
+- [ ] Declare const strings in Read only data section
 - [ ] Add ability to store values on the heap
 - [ ] Correct and update grammer for consts and sections
 - [x] Define grammar for Directives and Labels
