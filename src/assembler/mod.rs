@@ -7,12 +7,14 @@ mod assembler_instruction;
 mod lexer;
 mod parser;
 pub mod program;
+mod symbol;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     Op { code: Opcode },
     Register { register: i32 },
     IntOperand { operand: i32 },
+    StringOperand { operand: String },
     LabelDeclaration { value: String },
     Label { name: String },
     Directive { value: String },
@@ -25,6 +27,7 @@ impl Display for Token {
             Token::Op { code } => write!(f, "{} ", code),
             Token::Register { register } => write!(f, "{} ", register),
             Token::IntOperand { operand } => write!(f, "{} ", operand),
+            Token::StringOperand { operand } => write!(f, "{}", operand),
             Token::LabelDeclaration { value } => write!(f, "{} ", value),
             Token::Label { name } => write!(f, "{} ", name),
             Token::Directive { value } => write!(f, ".{}", value),

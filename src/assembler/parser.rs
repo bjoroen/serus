@@ -120,6 +120,12 @@ impl Parser {
 
                 Some(current)
             }
+            Token::StringOperand { operand: _ } => {
+                let current = self.current.clone();
+                self.read();
+
+                Some(current)
+            }
             Token::IntOperand { operand: _ } => {
                 let current = self.current.clone();
                 self.read();

@@ -48,6 +48,7 @@ impl Lexer {
             '$' => self.lex_register(),
             '@' => self.lex_label(),
             '.' => self.lex_directives(),
+            '"' => self.lex_string(),
             _ if self.char.is_alphabetic() => self.parse_opcode(),
             '\0' => Token::EOF,
             // TODO: Better error handling in lexer
@@ -135,6 +136,21 @@ impl Lexer {
         }
 
         Token::Directive { value: s }
+    }
+
+    fn lex_string(&mut self) -> Token {
+        self.read();
+        let mut s = String::new();
+
+        while self.char != '"' {
+            s.push(self.char);
+            self.read();
+        }
+
+        assert!(self.char == '"');
+        self.read();
+
+        Token::StringOperand { operand: s }
     }
 }
 
@@ -284,6 +300,32 @@ mod tests {
     }
 
     #[test]
+    fn test_lex_string() {
+        let test_cases = [
+            (
+                "\"Hello world\"",
+                Token::StringOperand {
+                    operand: String::from("Hello world"),
+                },
+            ),
+            (
+                "\"This is a string ' \"",
+                Token::StringOperand {
+                    operand: String::from("This is a string ' "),
+                },
+            ),
+            (
+                "\"'This is ok'\"",
+                Token::StringOperand {
+                    operand: String::from("'This is ok'"),
+                },
+            ),
+        ];
+
+        run_test(&test_cases)
+    }
+
+    #[test]
     fn test_lex_instruction() {
         let test_cases = [
             (
@@ -321,6 +363,20 @@ mod tests {
                     Token::Op { code: Opcode::LOAD },
                     Token::Register { register: 10 },
                     Token::IntOperand { operand: 20 },
+                ],
+            ),
+            (
+                "my_string: .asciiz \"Hello world\"",
+                vec![
+                    Token::LabelDeclaration {
+                        value: String::from("my_string"),
+                    },
+                    Token::Directive {
+                        value: String::from("asciiz"),
+                    },
+                    Token::StringOperand {
+                        operand: String::from("Hello world"),
+                    },
                 ],
             ),
         ];

@@ -1,8 +1,9 @@
-use std::collections::HashMap;
-
 use crate::assembler::parser::Parser;
 
-use super::assembler_instruction::{AssemblerInstruction, AssemblerToken};
+use super::{
+    assembler_instruction::AssemblerToken,
+    symbol::{Symbol, SymbolTable, SymbolType},
+};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum AssemblerPhase {
@@ -11,53 +12,9 @@ pub enum AssemblerPhase {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Symbol {
-    name: String,
-    instruction: AssemblerInstruction,
-    symbol_type: SymbolType,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum SymbolType {
-    Label,
-}
-
-impl Symbol {
-    pub fn new(name: String, instruction: AssemblerInstruction, symbol_type: SymbolType) -> Symbol {
-        Symbol {
-            name,
-            instruction,
-            symbol_type,
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct SymbolTable {
-    symbols: HashMap<String, Symbol>,
-}
-
-#[derive(Debug, PartialEq, Clone)]
 pub struct Assembler {
     pub phase: AssemblerPhase,
     pub symbols: SymbolTable,
-}
-
-impl SymbolTable {
-    pub fn new() -> SymbolTable {
-        SymbolTable {
-            symbols: HashMap::new(),
-        }
-    }
-
-    pub fn add_symbol(&mut self, s: Symbol) {
-        self.symbols.entry(s.name.clone()).or_insert(s);
-    }
-
-    pub fn get_symbol(&mut self, key: String) -> Option<&Symbol> {
-        let symbol = self.symbols.get(&key);
-        symbol
-    }
 }
 
 impl Assembler {
@@ -88,8 +45,11 @@ impl Assembler {
                     label_name: name,
                     assembler_instruction: instruction,
                 } => {
-                    let symbol =
-                        Symbol::new(String::from(name), instruction.clone(), SymbolType::Label);
+                    let symbol = Symbol::new(
+                        String::from(name),
+                        instruction.to_bytes(),
+                        SymbolType::Label,
+                    );
                     self.symbols.add_symbol(symbol)
                 }
                 AssemblerToken::Instruction {
@@ -106,10 +66,7 @@ impl Assembler {
 
 #[cfg(test)]
 mod tests {
-
-    use crate::assembler::Token;
-
-    use super::*;
+    use crate::assembler::assembler::Assembler;
 
     #[test]
     fn test_symbol_assembler() {
@@ -117,48 +74,11 @@ mod tests {
 
         assembler.assemble("LOAD $0 #10\nLOAD $1 #10\nmy_label: ADD $2 $0 $1");
 
-        let instruction = AssemblerInstruction {
-            opcode: Some(Token::Op {
-                code: crate::instruction::Opcode::ADD,
-            }),
-            directive: None,
-            label: None,
-            operand_one: Some(Token::Register { register: 2 }),
-            operand_two: Some(Token::Register { register: 0 }),
-            operand_three: Some(Token::Register { register: 1 }),
-        };
-
-        let symbol = Symbol::new(String::from("my_label"), instruction, SymbolType::Label);
+        let instruction: Vec<u8> = vec![01, 02, 00, 01];
 
         assert_eq!(
             assembler.symbols.get_symbol(String::from("my_label")),
-            Some(&symbol)
-        );
-    }
-
-    #[test]
-    fn test_symbol_table() {
-        let mut symbol_tabel = SymbolTable::new();
-        let instruction = AssemblerInstruction {
-            opcode: Some(Token::Op {
-                code: crate::instruction::Opcode::JMP,
-            }),
-            directive: None,
-            label: Some(Token::Label {
-                name: String::from("test"),
-            }),
-            operand_one: None,
-            operand_two: None,
-            operand_three: None,
-        };
-
-        let symbol = Symbol::new(String::from("test_label"), instruction, SymbolType::Label);
-        symbol_tabel.add_symbol(symbol.clone());
-
-        assert_eq!(symbol_tabel.symbols.len(), 1);
-        assert_eq!(
-            symbol_tabel.get_symbol(String::from("test_label")),
-            Some(&symbol)
+            Some(&instruction)
         );
     }
 }
