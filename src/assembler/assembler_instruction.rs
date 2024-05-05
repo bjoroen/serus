@@ -34,8 +34,9 @@ impl AssemblerInstruction {
 
         match &self.opcode {
             Some(Token::Op { code }) => result.push(*code as u8),
-            _ => {
-                panic!("Expected opcode or Directive")
+            Some(Token::Directive { value }) => {}
+            e => {
+                panic!("Expected Opcode, found: {:#?}", e)
             }
         }
 

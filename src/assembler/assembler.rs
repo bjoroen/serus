@@ -18,6 +18,7 @@ pub struct Assembler {
     pub phase: AssemblerPhase,
     pub symbols: SymbolTable,
     pub sections: Vec<String>,
+    pub read_only_data: Vec<u8>,
     pub const_offset: u32,
 }
 
@@ -27,6 +28,7 @@ impl Assembler {
             phase: AssemblerPhase::PhaseOne,
             symbols: SymbolTable::new(),
             sections: vec![],
+            read_only_data: vec![],
             const_offset: 0,
         }
     }
@@ -80,7 +82,7 @@ impl Assembler {
         vec![00, 21, 21]
     }
 
-    fn process_directive(&self, instruction: &AssemblerInstruction) {
+    fn process_directive(&mut self, instruction: &AssemblerInstruction) {
         if let Some(name) = instruction.get_directive_name() {
             match name {
                 ".asciiz" => self.handle_ascii(instruction),
@@ -89,8 +91,16 @@ impl Assembler {
         }
     }
 
-    fn handle_ascii(&self, i: &AssemblerInstruction) {
-        if let Some(s) = i.get_string_content() {}
+    fn handle_ascii(&mut self, i: &AssemblerInstruction) {
+        if let Some(s) = i.get_string_content() {
+            for byte in s.as_bytes() {
+                self.read_only_data.push(*byte);
+                self.const_offset += 1
+            }
+
+            self.read_only_data.push(0);
+            self.const_offset += 1
+        }
     }
 }
 
@@ -122,5 +132,14 @@ mod tests {
             assembler.sections,
             vec![String::from(".data"), String::from(".code")]
         );
+    }
+
+    #[test]
+    fn test_read_only_data() {
+        let mut assembler = Assembler::new();
+
+        assembler.assemble(".data\nmy_string: .asciiz \"Hello world\"");
+
+        assert_eq!(assembler.read_only_data.len(), "Hello world".len() + 1);
     }
 }
